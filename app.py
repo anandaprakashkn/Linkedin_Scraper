@@ -2,6 +2,13 @@ from flask import Flask, request, jsonify, render_template , send_file
 import os
 import asyncio
 from test_headless import run_scraper  # this should be your async function in test.py
+from playwright.sync_api import sync_playwright
+
+def install_browsers():
+    with sync_playwright() as p:
+        p.install()
+
+install_browsers()
 
 app = Flask(__name__)
 
