@@ -1,14 +1,17 @@
-from flask import Flask, request, jsonify, render_template , send_file
+from flask import Flask, request, jsonify, render_template, send_file
 import os
 import asyncio
-from test_headless import run_scraper  # this should be your async function in test.py
-from playwright.sync_api import sync_playwright
+import subprocess
+from test_headless import run_scraper  # your async scraper function
 
-def install_browsers():
-    with sync_playwright() as p:
-        p.install()
+# Install Playwright Chromium if needed
+def install_playwright_browsers():
+    try:
+        subprocess.run(["playwright", "install", "chromium"], check=True)
+    except subprocess.CalledProcessError as e:
+        print("Failed to install Playwright browsers:", e)
 
-install_browsers()
+install_playwright_browsers()
 
 app = Flask(__name__)
 
@@ -18,7 +21,7 @@ def index():
 
 @app.route('/download')
 def download_file():
-    file_path = 'leads_with_company_details.csv'  # 👈 Match this
+    file_path = 'leads_with_company_details.csv'
     if os.path.exists(file_path):
         return send_file(file_path, as_attachment=True)
     else:
@@ -33,7 +36,6 @@ def start_scraping():
     if not session_cookie or not list_url:
         return jsonify({"message": "Missing input."}), 400
 
-    # Run the async scraper using asyncio
     try:
         asyncio.run(run_scraper(session_cookie, list_url))
         return jsonify({"message": "✅ Scraping completed successfully!"})
